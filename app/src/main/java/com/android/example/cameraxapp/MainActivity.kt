@@ -131,15 +131,17 @@ class MainActivity : AppCompatActivity() {
         recording = videoCapture.output
             .prepareRecording(this, mediaStoreOutputOptions)
             .apply {
-                if (PermissionChecker.checkSelfPermission(this@MainActivity,
-                        Manifest.permission.RECORD_AUDIO) ==
-                    PermissionChecker.PERMISSION_GRANTED)
-                {
+                if (PermissionChecker.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.RECORD_AUDIO
+                    ) ==
+                    PermissionChecker.PERMISSION_GRANTED
+                ) {
                     withAudioEnabled()
                 }
             }
             .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
-                when(recordEvent) {
+                when (recordEvent) {
                     is VideoRecordEvent.Start -> {
                         viewBinding.videoCaptureButton.apply {
                             text = getString(R.string.stop_capture)
@@ -156,8 +158,10 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             recording?.close()
                             recording = null
-                            Log.e(TAG, "Video capture ends with error: " +
-                                    "${recordEvent.error}")
+                            Log.e(
+                                TAG, "Video capture ends with error: " +
+                                        "${recordEvent.error}"
+                            )
                         }
                         viewBinding.videoCaptureButton.apply {
                             text = getString(R.string.start_capture)
@@ -183,12 +187,17 @@ class MainActivity : AppCompatActivity() {
                 }
 
             val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
+                .setQualitySelector(
+                    QualitySelector.from(
+                        Quality.HIGHEST,
+                        FallbackStrategy.higherQualityOrLowerThan(Quality.SD)
+                    )
+                )
                 .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
-//            imageCapture = ImageCapture.Builder().build()
-//
+            imageCapture = ImageCapture.Builder().build()
+
 //            val imageAnalyzer = ImageAnalysis.Builder()
 //                .build()
 //                .also {
@@ -206,7 +215,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, videoCapture
+                    this, cameraSelector, preview, imageCapture, videoCapture
                 )
             } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
